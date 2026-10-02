@@ -14,7 +14,7 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 ROOT = Path(__file__).resolve().parent.parent
 MODELS = {
-    "groq": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+    "groq": ["openai/gpt-oss-20b", "openai/gpt-oss-120b"],
     "huggingface": ["Qwen/Qwen3-4B-Thinking-2507"],
     "gemini": ["gemini-2.5-flash", "gemini-2.5-flash-lite"],
     "kimi": ["kimi-k2.5"],

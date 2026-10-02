@@ -15,7 +15,7 @@ Groq, Hugging Face, Gemini ve Kimi için tek bir FastAPI sohbet uç noktası ve 
 6. `uvicorn backend.main:app --reload` çalıştırın.
 7. `http://127.0.0.1:8000` adresini açın.
 
-`POST /api/chat` gövdesi: `{ "provider": "groq", "model": "llama-3.3-70b-versatile", "prompt": "Merhaba" }`. İsteğe bağlı `X-API-Key` başlığı sunucu anahtarını o istek için geçersiz kılar. Yanıt: `{ "provider": "...", "model": "...", "answer": "..." }`.
+`POST /api/chat` gövdesi: `{ "provider": "groq", "model": "openai/gpt-oss-20b", "prompt": "Merhaba" }`. İsteğe bağlı `X-API-Key` başlığı sunucu anahtarını o istek için geçersiz kılar. Yanıt: `{ "provider": "...", "model": "...", "answer": "..." }`.
 
 Kota ve model erişimi sağlayıcı hesabına göre değişir. Basit IP sınırı dakikada 5 istektir; tek süreç belleğinde tutulur. Çok işçili veya dağıtık dağıtımda Redis gibi paylaşılan bir sınırlandırıcı kullanın. Üretimde HTTPS kullanın; Tailwind CDN yerine derlenmiş CSS sunun. BYOK anahtarları tarayıcı LocalStorage alanında saklanır.
 
