@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100 antialiased">
+  <main class="mx-auto max-w-3xl px-5 py-10">
+    <header class="mb-8">
+      <p class="text-sm font-semibold uppercase tracking-widest text-cyan-400">AI Hub</p>
+      <h1 class="mt-2 text-3xl font-bold">Tek arayüz, farklı yapay zekâ modelleri</h1>
+      <p class="mt-3 text-slate-400">Sağlayıcıyı seçin, sorunuzu yazın ve yanıtı alın.</p>
+    </header>
+    <form id="chat-form" class="space-y-5 rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-xl">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label class="block text-sm">Sağlayıcı
+          <select id="provider" class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"></select>
+        </label>
+        <label class="block text-sm">Model
+          <select id="model" class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"></select>
+        </label>
+      </div>
+      <label class="block text-sm">Kendi API anahtarınız (isteğe bağlı)
+        <input id="api-key" type="password" autocomplete="off" placeholder="Bu tarayıcıda saklanır"
+          class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 p-3">
+      </label>
+      <p class="text-xs text-amber-300">Paylaşılan cihazlarda anahtar kaydetmeyin. LocalStorage, sayfadaki JavaScript tarafından okunabilir.</p>
+      <div class="flex items-center gap-3">
+        <button id="save-key" type="button" class="rounded-lg border border-slate-600 px-4 py-2 hover:bg-slate-800">Anahtarı kaydet</button>
+        <button id="delete-key" type="button" class="rounded-lg border border-slate-600 px-4 py-2 hover:bg-slate-800">Anahtarı sil</button>
+      </div>
+      <label class="block text-sm">Mesajınız
+        <textarea id="prompt" rows="7" maxlength="12000" required placeholder="Sorunuzu buraya yazın..."
+          class="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 p-3"></textarea>
+      </label>
+      <button id="send" type="submit" class="rounded-lg bg-cyan-500 px-6 py-3 font-semibold text-slate-950 hover:bg-cyan-400 disabled:opacity-50">Gönder</button>
+    </form>
+    <section class="mt-6 rounded-2xl border border-slate-800 bg-slate-900 p-6" aria-live="polite">
+      <h2 class="font-semibold">Yanıt</h2>
+      <p id="status" class="mt-2 text-sm text-slate-400"></p>
+      <pre id="answer" class="mt-4 whitespace-pre-wrap break-words font-sans leading-relaxed"></pre>
+    </section>
+    <footer class="mt-10 border-t border-slate-800 pt-5 text-sm text-slate-400">
+      <h2 class="font-semibold text-slate-200">Sorumluluk Reddi ve Hizmet Şartları</h2>
+      <p class="mt-2">Bu proje bağımsız bir açık kaynak çalışmasıdır, üçüncü taraf sağlayıcıların resmi bir ürünü değildir ve üretilen içeriklerden kullanıcı sorumludur.</p>
+      <p class="mt-2">Kullanımınız ilgili sağlayıcının şartlarına ve kotalarına tabidir.</p>
+    </footer>
+  </main>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let catalog = {};
+    const keyName = () => `ai-hub-key-${$('provider').value}`;
+    const syncKey = () => { $('api-key').value = localStorage.getItem(keyName()) || ''; };
+    const syncModels = () => {
+      $('model').replaceChildren(...catalog[$('provider').value].map(name => new Option(name, name)));
+      syncKey();
+    };
+    $('provider').addEventListener('change', syncModels);
+    $('save-key').addEventListener('click', () => {
+      const value = $('api-key').value.trim();
+      if (value) localStorage.setItem(keyName(), value);
+      $('status').textContent = value ? 'Anahtar bu tarayıcıda kaydedildi.' : 'Kaydedilecek anahtar girin.';
+    });
+    $('delete-key').addEventListener('click', () => {
+      localStorage.removeItem(keyName());
+      $('api-key').value = '';
+      $('status').textContent = 'Kaydedilmiş anahtar silindi.';
+    });
+    fetch('/api/models').then(r => r.json()).then(data => {
+      catalog = data;
+      $('provider').replaceChildren(...Object.keys(catalog).map(name => new Option(name, name)));
+      syncModels();
+    }).catch(() => { $('status').textContent = 'Model listesi yüklenemedi.'; });
+    $('chat-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      $('send').disabled = true;
+      $('answer').textContent = '';
+      $('status').textContent = 'Yanıt bekleniyor...';
+      try {
+        const headers = {'Content-Type': 'application/json'};
+        const key = $('api-key').value.trim();
+        if (key) headers['X-API-Key'] = key;
+        const response = await fetch('/api/chat', {
+          method: 'POST', headers,
+          body: JSON.stringify({provider: $('provider').value, model: $('model').value, prompt: $('prompt').value})
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || 'İstek başarısız.');
+        $('answer').textContent = data.answer;
+        $('status').textContent = `${data.provider} · ${data.model}`;
+      } catch (error) {
+        $('status').textContent = `Hata: ${error.message}`;
+      } finally { $('send').disabled = false; }
+    });
+  </script>
+</body>
+</html>
