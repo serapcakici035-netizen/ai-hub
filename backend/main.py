@@ -42,6 +42,11 @@ async def index():
     return FileResponse(ROOT / "frontend" / "index.html")
 
 
+@app.get("/styles.css")
+async def styles():
+    return FileResponse(ROOT / "frontend" / "styles.css", media_type="text/css")
+
+
 @app.get("/api/models")
 async def models():
     return MODELS

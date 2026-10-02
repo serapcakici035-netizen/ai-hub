@@ -23,7 +23,7 @@ Kota ve model erişimi sağlayıcı hesabına göre değişir. Basit IP sınır�
 
 Proje kökündeki `render.yaml`, frontend ve API'yi tek Render web servisinde çalıştırır. GitHub deposu oluşturup bu dosyaları `main` dalına yükleyin. Render'da **New → Blueprint** seçerek depoyu bağlayın. `GROQ_API_KEYS`, `HF_TOKEN`, `GEMINI_API_KEY` ve `KIMI_API_KEY` değerlerini Render ortam değişkenlerinde sağlayın; kullanmayacağınız sağlayıcılar için boş bırakabilirsiniz. Dağıtım tamamlanınca site `https://<servis-adı>.onrender.com/` adresinde açılır. Kullanıcı kendi anahtarını arayüzde de girebilir.
 
-Ücretsiz Render web servisi uzun süre kullanılmadığında uykuya geçebilir; ilk istek daha yavaş yanıtlanabilir. Yayın öncesinde gerçek anahtarların `.env` içinde kaldığını ve `.gitignore` tarafından hariç tutulduğunu kontrol edin.
+Ücretsiz Render web servisi uzun süre kullanılmadığında uykuya geçebilir; ilk istek daha yavaş yanıtlanabilir. Yayın öncesinde gerçek anahtarların `.env` içinde kaldığını ve `.gitignore` tarafından hariç tutulduğunu kontrol edin. Arayüz stilleri derlenmiş `frontend/styles.css` dosyasından gelir; HTML sınıflarını değiştirdiğinizde `npm install` ve `npm run build:css` çalıştırıp üretilen CSS dosyasını commit edin.
 
 ## Başka bir sağlayıcı veya anahtar ekleme
 
