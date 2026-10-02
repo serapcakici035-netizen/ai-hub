@@ -102,6 +102,10 @@ async def chat(body: ChatRequest, request: Request, x_api_key: str | None = Head
             return {"provider": body.provider, "model": body.model, "answer": answer}
     except httpx.HTTPStatusError as exc:
         # Sağlayıcı gövdesini döndürmeyin: hata metni hassas bilgi içerebilir.
+        if exc.response.status_code == 429:
+            raise HTTPException(429, "Sağlayıcı kotası dolu veya istek sınırına ulaşıldı.") from exc
+        if exc.response.status_code in (401, 403):
+            raise HTTPException(502, "Sağlayıcı API anahtarını kabul etmedi veya model erişimine izin vermedi.") from exc
         raise HTTPException(502, f"Sağlayıcı isteği başarısız (HTTP {exc.response.status_code}).") from exc
     except (httpx.HTTPError, KeyError, IndexError, ValueError, TypeError) as exc:
         raise HTTPException(502, "Sağlayıcı yanıtı alınamadı veya çözümlenemedi.") from exc
