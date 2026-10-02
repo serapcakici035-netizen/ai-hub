@@ -1,6 +1,6 @@
 # AI Hub
 
-Groq, Hugging Face ve Gemini için tek bir FastAPI sohbet uç noktası ve Türkçe web arayüzü.
+Groq, Hugging Face, Gemini ve Kimi için tek bir FastAPI sohbet uç noktası ve Türkçe web arayüzü.
 
 **Canlı site:** https://ai-hub-bjo0.onrender.com/  
 **Kaynak depo:** https://github.com/serapcakici035-netizen/ai-hub
@@ -11,7 +11,7 @@ Groq, Hugging Face ve Gemini için tek bir FastAPI sohbet uç noktası ve Türk�
 2. `py -3 -m venv .venv` çalıştırın (Python komutu PATH üzerindeyse `python -m venv .venv` de olur).
 3. Windows PowerShell'de `.venv\Scripts\Activate.ps1` çalıştırın.
 4. `pip install -r backend/requirements.txt` çalıştırın.
-5. `.env.example` dosyasını `.env` adıyla kopyalayın ve kullanacağınız sağlayıcıların anahtarlarını doldurun. BYOK kullanacaksanız ilgili sunucu anahtarını boş bırakabilirsiniz.
+5. `.env.example` dosyasını `.env` adıyla kopyalayın ve kullanacağınız sağlayıcıların anahtarlarını doldurun. İki Groq anahtarını `GROQ_API_KEYS` değerine virgülle ayırarak yazabilirsiniz; uygulama bunları sırayla kullanır. BYOK kullanacaksanız ilgili sunucu anahtarını boş bırakabilirsiniz.
 6. `uvicorn backend.main:app --reload` çalıştırın.
 7. `http://127.0.0.1:8000` adresini açın.
 
@@ -21,6 +21,6 @@ Kota ve model erişimi sağlayıcı hesabına göre değişir. Basit IP sınır�
 
 ## GitHub üzerinden yayınlama
 
-Proje kökündeki `render.yaml`, frontend ve API'yi tek Render web servisinde çalıştırır. GitHub deposu oluşturup bu dosyaları `main` dalına yükleyin. Render'da **New → Blueprint** seçerek depoyu bağlayın. `GROQ_API_KEY`, `HF_TOKEN` ve `GEMINI_API_KEY` değerlerini Render ortam değişkenlerinde sağlayın; kullanmayacağınız sağlayıcılar için boş bırakabilirsiniz. Dağıtım tamamlanınca site `https://<servis-adı>.onrender.com/` adresinde açılır. Kullanıcı kendi anahtarını arayüzde de girebilir.
+Proje kökündeki `render.yaml`, frontend ve API'yi tek Render web servisinde çalıştırır. GitHub deposu oluşturup bu dosyaları `main` dalına yükleyin. Render'da **New → Blueprint** seçerek depoyu bağlayın. `GROQ_API_KEYS`, `HF_TOKEN`, `GEMINI_API_KEY` ve `KIMI_API_KEY` değerlerini Render ortam değişkenlerinde sağlayın; kullanmayacağınız sağlaycılar için boş bırakabilirsiniz. Dağıtım tamamlanınca site `https://<servis-adı>.onrender.com/` adresinde açılır. Kullanıcı kendi anahtarını arayüzde de girebilir.
 
 Ücretsiz Render web servisi uzun süre kullanılmadığında uykuya geçebilir; ilk istek daha yavaş yanıtlanabilir. Yayın öncesinde gerçek anahtarların `.env` içinde kaldığını ve `.gitignore` tarafından hariç tutulduğunu kontrol edin.

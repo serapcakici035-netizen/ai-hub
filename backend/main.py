@@ -1,6 +1,7 @@
 import os
 import time
 from collections import defaultdict, deque
+from itertools import cycle
 from pathlib import Path
 
 import httpx
@@ -16,12 +17,16 @@ MODELS = {
     "groq": ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
     "huggingface": ["Qwen/Qwen3-4B-Thinking-2507"],
     "gemini": ["gemini-2.5-flash", "gemini-2.5-flash-lite"],
+    "kimi": ["kimi-k2.5"],
 }
 URLS = {
     "groq": "https://api.groq.com/openai/v1/chat/completions",
     "huggingface": "https://router.huggingface.co/v1/chat/completions",
+    "kimi": "https://api.moonshot.ai/v1/chat/completions",
 }
-ENV_KEYS = {"groq": "GROQ_API_KEY", "huggingface": "HF_TOKEN", "gemini": "GEMINI_API_KEY"}
+ENV_KEYS = {"groq": "GROQ_API_KEY", "huggingface": "HF_TOKEN", "gemini": "GEMINI_API_KEY", "kimi": "KIMI_API_KEY"}
+groq_keys = [key.strip() for key in os.getenv("GROQ_API_KEYS", "").split(",") if key.strip()]
+groq_key_cycle = cycle(groq_keys) if groq_keys else None
 hits: dict[str, deque[float]] = defaultdict(deque)
 app = FastAPI(title="AI Hub")
 
@@ -62,7 +67,11 @@ async def chat(body: ChatRequest, request: Request, x_api_key: str | None = Head
         raise HTTPException(429, "Dakikada en fazla 5 istek gönderebilirsiniz.")
     bucket.append(now)
 
-    key = (x_api_key or "").strip() or os.getenv(ENV_KEYS[body.provider], "").strip()
+    key = (x_api_key or "").strip()
+    if not key and body.provider == "groq" and groq_key_cycle is not None:
+        key = next(groq_key_cycle)
+    if not key:
+        key = os.getenv(ENV_KEYS[body.provider], "").strip()
     if not key:
         raise HTTPException(503, "Bu sağlayıcı için API anahtarı tanımlı değil.")
 
