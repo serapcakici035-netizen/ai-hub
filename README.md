@@ -2,6 +2,9 @@
 
 Groq, Hugging Face ve Gemini için tek bir FastAPI sohbet uç noktası ve Türkçe web arayüzü.
 
+**Canlı site:** https://ai-hub-bjo0.onrender.com/  
+**Kaynak depo:** https://github.com/serapcakici035-netizen/ai-hub
+
 ## Kurulum
 
 1. Python 3.10+ kurun.
