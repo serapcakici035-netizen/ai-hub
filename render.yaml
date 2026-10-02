@@ -13,9 +13,3 @@ services:
         sync: false
       - key: GROQ_API_KEYS
         sync: false
-      - key: HF_TOKEN
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: KIMI_API_KEY
-        sync: false

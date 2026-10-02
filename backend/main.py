@@ -6,25 +6,15 @@ from pathlib import Path
 
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 ROOT = Path(__file__).resolve().parent.parent
-MODELS = {
-    "groq": ["openai/gpt-oss-20b", "openai/gpt-oss-120b"],
-    "huggingface": ["Qwen/Qwen3-4B-Thinking-2507"],
-    "gemini": ["gemini-2.5-flash", "gemini-2.5-flash-lite"],
-    "kimi": ["kimi-k2.5"],
-}
-URLS = {
-    "groq": "https://api.groq.com/openai/v1/chat/completions",
-    "huggingface": "https://router.huggingface.co/v1/chat/completions",
-    "kimi": "https://api.moonshot.ai/v1/chat/completions",
-}
-ENV_KEYS = {"groq": "GROQ_API_KEY", "huggingface": "HF_TOKEN", "gemini": "GEMINI_API_KEY", "kimi": "KIMI_API_KEY"}
+MODELS = {"groq": ["openai/gpt-oss-20b", "openai/gpt-oss-120b"]}
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 groq_keys = [key.strip() for key in os.getenv("GROQ_API_KEYS", "").split(",") if key.strip()]
 groq_key_cycle = cycle(groq_keys) if groq_keys else None
 hits: dict[str, deque[float]] = defaultdict(deque)
@@ -58,7 +48,7 @@ async def health():
 
 
 @app.post("/api/chat")
-async def chat(body: ChatRequest, request: Request, x_api_key: str | None = Header(default=None)):
+async def chat(body: ChatRequest, request: Request):
     if body.provider not in MODELS or body.model not in MODELS[body.provider]:
         raise HTTPException(400, "Geçersiz sağlayıcı veya model.")
 
@@ -72,36 +62,20 @@ async def chat(body: ChatRequest, request: Request, x_api_key: str | None = Head
         raise HTTPException(429, "Dakikada en fazla 5 istek gönderebilirsiniz.")
     bucket.append(now)
 
-    key = (x_api_key or "").strip()
-    if not key and body.provider == "groq" and groq_key_cycle is not None:
-        key = next(groq_key_cycle)
+    key = next(groq_key_cycle) if groq_key_cycle is not None else os.getenv("GROQ_API_KEY", "").strip()
     if not key:
-        key = os.getenv(ENV_KEYS[body.provider], "").strip()
-    if not key:
-        raise HTTPException(503, "Bu sağlayıcı için API anahtarı tanımlı değil.")
+        raise HTTPException(503, "Groq API anahtarı tanımlı değil.")
 
     try:
         async with httpx.AsyncClient(timeout=60) as client:
-            if body.provider == "gemini":
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/{body.model}:generateContent"
-                response = await client.post(
-                    url,
-                    headers={"x-goog-api-key": key},
-                    json={"contents": [{"parts": [{"text": body.prompt}]}]},
-                )
-            else:
-                response = await client.post(
-                    URLS[body.provider],
-                    headers={"Authorization": f"Bearer {key}"},
-                    json={"model": body.model, "messages": [{"role": "user", "content": body.prompt}]},
-                )
+            response = await client.post(
+                GROQ_URL,
+                headers={"Authorization": f"Bearer {key}"},
+                json={"model": body.model, "messages": [{"role": "user", "content": body.prompt}]},
+            )
             response.raise_for_status()
             data = response.json()
-            if body.provider == "gemini":
-                parts = data["candidates"][0]["content"]["parts"]
-                answer = "".join(part.get("text", "") for part in parts)
-            else:
-                answer = data["choices"][0]["message"]["content"]
+            answer = data["choices"][0]["message"]["content"]
             if not answer:
                 raise ValueError("empty response")
             return {"provider": body.provider, "model": body.model, "answer": answer}
